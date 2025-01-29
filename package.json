@@ -14,6 +14,7 @@
     "@deepgram/sdk": "^3.6.0",
     "@vercel/analytics": "^1.4.1",
     "ai": "^3.4.33",
+    "cheerio": "^1.0.0",
     "date-fns": "^3.6.0",
     "firebase": "^10.13.0",
     "framer-motion": "^11.3.31",

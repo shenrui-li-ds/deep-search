@@ -10,6 +10,7 @@ interface Source {
   title: string;
   url: string;
   snippet: string;
+  images: { src: string; alt: string }[];
 }
 
 interface SearchState {
@@ -78,6 +79,21 @@ export default function SearchPage() {
 
       const searchData = await searchResponse.json();
 
+      // Fetch images from the source URLs
+      const imageResponse = await fetch('/api/scrape/images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          urls: searchData.results.map((result: any) => result.url)
+        }),
+      });
+
+      let imageResults: { url: string; images: { src: string; alt: string }[] }[] = [];
+      if (imageResponse.ok) {
+        const imageData = await imageResponse.json();
+        imageResults = imageData.results;
+      }
+
       // Choose the API endpoint based on the model
       const model = 'o1-mini';
       const summaryEndpoint = model.startsWith('o1') ? '/api/openai/summarize' : '/api/deepseek/summarize';
@@ -102,11 +118,16 @@ export default function SearchPage() {
         ...prev,
         isLoading: false,
         answer: summary || '',
-        sources: searchData.results.map((result: any) => ({
-          title: result.title,
-          url: result.url,
-          snippet: result.content
-        })),
+        sources: searchData.results.map((result: any) => {
+          // Find matching images for this source
+          const imageResult = imageResults.find(ir => ir.url === result.url);
+          return {
+            title: result.title,
+            url: result.url,
+            snippet: result.content,
+            images: imageResult?.images || []
+          };
+        }),
         reasoning: reasoning || '',
       }));
     } catch (error) {

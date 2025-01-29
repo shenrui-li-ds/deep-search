@@ -8,6 +8,7 @@ interface Source {
   url: string;
   snippet: string;
   domain?: string;
+  images?: { src: string; alt: string }[];
 }
 
 interface SearchResultsProps {
@@ -215,40 +216,47 @@ export function SearchResults({
             </div>
 
             {/* Sources Section */}
-            <div className="hidden lg:block fixed top-24 right-8 w-80 space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sources</h2>
-                <button
-                  onClick={() => setShowSources(!showSources)}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  {showSources ? 'Show Less' : 'Show All'}
-                  {showSources ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {/* Preview Sources Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                {(showSources ? sources : sources.slice(0, 4)).map((source, index) => (
-                  <a
-                    key={index}
-                    href={source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-5 h-5 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs flex-shrink-0">
-                        {getDomain(source.url).charAt(0).toUpperCase()}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Sources</h3>
+              <div className="space-y-4">
+                {sources.map((source, index) => (
+                  <div key={index} className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2"
+                        >
+                          <span>{source.title || getDomain(source.url)}</span>
+                          <LinkIcon className="h-4 w-4" />
+                        </a>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {source.snippet}
+                        </p>
                       </div>
-                      <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                        {getDomain(source.url)}
-                      </span>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
-                      {source.title}
-                    </h3>
-                  </a>
+                    
+                    {/* Image Gallery */}
+                    {source.images && source.images.length > 0 && (
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {source.images.map((image, imgIndex) => (
+                          <div key={imgIndex} className="relative aspect-video">
+                            <img
+                              src={image.src}
+                              alt={image.alt}
+                              className="rounded-lg object-cover w-full h-full"
+                              onError={(e) => {
+                                // Hide image on load error
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
