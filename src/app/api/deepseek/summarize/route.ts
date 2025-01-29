@@ -43,16 +43,18 @@ export async function POST(req: Request) {
         model: 'deepseek-reasoner',
         messages: [
           {
-            role: 'system',
-            content: 'You are a helpful AI assistant that provides accurate summaries based on search results. First analyze and reason about the information, then provide a clear and concise answer.',
-          },
-          {
             role: 'user',
-            content: `Please analyze these search results and provide a comprehensive answer:\n\n${formattedResults}`,
+            content: `You are a helpful assistant that generates clear, accurate summaries from web search results. Please provide your response in two parts:
+
+1. REASONING: First, explain your thought process and how you're analyzing the information.
+2. SUMMARY: Then, provide a clear, well-structured summary of the information, using markdown formatting and citing sources when appropriate.
+
+Please analyze these search results:
+
+${formattedResults}`,
           },
         ],
         max_tokens: 10000,
-        temperature: 1.0,
       }),
     });
 
@@ -61,12 +63,16 @@ export async function POST(req: Request) {
     }
 
     const data = await response.json();
-    const message = data.choices[0].message;
+    const content = data.choices?.[0]?.message?.content || '';
     
-    return NextResponse.json({
-      summary: message.content,
-      reasoning: message.reasoning_content || '',
-    });
+    // Split the content into reasoning and summary
+    const reasoningMatch = content.match(/REASONING:([\s\S]*?)(?=SUMMARY:)/i);
+    const summaryMatch = content.match(/SUMMARY:([\s\S]*)/i);
+    
+    const reasoning = reasoningMatch ? reasoningMatch[1].trim() : '';
+    const summary = summaryMatch ? summaryMatch[1].trim() : content;
+
+    return NextResponse.json({ summary, reasoning });
   } catch (error) {
     console.error('Summarization error:', error);
     return NextResponse.json(

@@ -15,7 +15,6 @@ interface SearchResultsProps {
   answer: string;
   sources: Source[];
   reasoning?: string;
-  onFollowUpQuestion: (question: string) => void;
   isLoading?: boolean;
   relatedTopics?: string[];
 }
@@ -25,22 +24,12 @@ export function SearchResults({
   answer, 
   sources, 
   reasoning, 
-  onFollowUpQuestion, 
   isLoading,
   relatedTopics = [] 
 }: SearchResultsProps) {
   const [showSources, setShowSources] = useState(false);
   const [showReasoning, setShowReasoning] = useState(false);
-  const [followUpQuestion, setFollowUpQuestion] = useState('');
   const [hoveredCitation, setHoveredCitation] = useState<number | null>(null);
-
-  const handleFollowUpSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (followUpQuestion.trim()) {
-      onFollowUpQuestion(followUpQuestion);
-      setFollowUpQuestion('');
-    }
-  };
 
   // Function to extract domain from URL
   const getDomain = (url: string) => {
@@ -54,21 +43,47 @@ export function SearchResults({
 
   return (
     <div className="relative w-full">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="relative">
           <div className="space-y-8">
             {/* Query */}
             <div>
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Query</h2>
-              <div className="p-6">
+              <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <p className="text-gray-700 dark:text-gray-300">{query}</p>
               </div>
             </div>
 
+            {/* Reasoning Process */}
+            {reasoning && (
+              <div>
+                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Reasoning Process</h2>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => setShowReasoning(!showReasoning)}
+                    className="flex items-center justify-between w-full p-4 text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
+                      <span className="font-medium text-gray-900 dark:text-white">View Reasoning</span>
+                    </div>
+                    {showReasoning ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
+                  {showReasoning && (
+                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                      <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 font-mono">
+                        {reasoning}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Answer */}
             <div>
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Answer</h2>
-              <div className="p-6">
+              <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   className="prose dark:prose-invert max-w-none space-y-6"
@@ -186,7 +201,6 @@ export function SearchResults({
                       {relatedTopics.map((topic, index) => (
                         <button
                           key={index}
-                          onClick={() => onFollowUpQuestion(topic)}
                           className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300 transition-colors"
                         >
                           {topic}
@@ -198,94 +212,47 @@ export function SearchResults({
               </div>
             </div>
 
-            {/* Reasoning Process */}
-            {reasoning && (
-              <div>
-                <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Reasoning Process</h2>
-                <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={() => setShowReasoning(!showReasoning)}
-                    className="flex items-center justify-between w-full p-4 text-left"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></span>
-                      <span className="font-medium text-gray-900 dark:text-white">View Reasoning</span>
-                    </div>
-                    {showReasoning ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-                  {showReasoning && (
-                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                      <pre className="whitespace-pre-wrap text-gray-700 dark:text-gray-300 font-mono">
-                        {reasoning}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Sources Section */}
-          <div className="hidden lg:block fixed top-24 right-8 w-80 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sources</h2>
-              <button
-                onClick={() => setShowSources(!showSources)}
-                className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-              >
-                {showSources ? 'Show Less' : 'Show All'}
-                {showSources ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-            </div>
-
-            {/* Preview Sources Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              {(showSources ? sources : sources.slice(0, 4)).map((source, index) => (
-                <a
-                  key={index}
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
+            {/* Sources Section */}
+            <div className="hidden lg:block fixed top-24 right-8 w-80 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sources</h2>
+                <button
+                  onClick={() => setShowSources(!showSources)}
+                  className="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-5 h-5 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs flex-shrink-0">
-                      {getDomain(source.url).charAt(0).toUpperCase()}
+                  {showSources ? 'Show Less' : 'Show All'}
+                  {showSources ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Preview Sources Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                {(showSources ? sources : sources.slice(0, 4)).map((source, index) => (
+                  <a
+                    key={index}
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-5 h-5 rounded bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs flex-shrink-0">
+                        {getDomain(source.url).charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                        {getDomain(source.url)}
+                      </span>
                     </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                      {getDomain(source.url)}
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
-                    {source.title}
-                  </h3>
-                </a>
-              ))}
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+                      {source.title}
+                    </h3>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Follow-up Question Form */}
-      {!isLoading && (
-        <form onSubmit={handleFollowUpSubmit} className="mt-8">
-          <div className="flex gap-4 max-w-[900px]">
-            <input
-              type="text"
-              value={followUpQuestion}
-              onChange={(e) => setFollowUpQuestion(e.target.value)}
-              placeholder="Ask a follow-up question..."
-              className="flex-1 min-w-0 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              className="px-4 py-3 bg-blue-500 hover:bg-blue-600 dark:bg-blue-400 dark:hover:bg-blue-300 rounded-lg text-white"
-            >
-              Ask
-            </button>
-          </div>
-        </form>
-      )}
     </div>
   );
 }

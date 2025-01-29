@@ -42,7 +42,7 @@ export async function POST(req: Request) {
             role: 'user',
             content: `You are a helpful assistant that generates clear, accurate summaries from web search results. Include relevant information and cite sources when appropriate. Use markdown formatting for better readability.
 
-Please analyze and summarize the following search results, providing clear reasoning and relevant citations:
+Please analyze and summarize the following search results:
 
 ${context}`,
           },
@@ -50,13 +50,8 @@ ${context}`,
         max_completion_tokens: 10000,
       });
 
-      const summary = response.choices[0]?.message?.content;
-      if (!summary) {
-        console.error('OpenAI API response:', JSON.stringify(response, null, 2));
-        throw new Error('No summary generated');
-      }
-
-      return NextResponse.json({ summary });
+      const summary = response.choices[0]?.message?.content || '';
+      return NextResponse.json({ summary, reasoning: '' });
     } catch (error: any) {
       console.error('OpenAI API error:', error);
       

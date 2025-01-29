@@ -70,13 +70,17 @@ export default function SearchPage() {
 
       const searchData = await searchResponse.json();
 
-      // Finally, get the summary from OpenAI
-      const summaryResponse = await fetch('/api/openai/summarize', {
+      // Choose the API endpoint based on the model
+      const model = 'o1-mini';
+      const summaryEndpoint = model.startsWith('o1') ? '/api/openai/summarize' : '/api/deepseek/summarize';
+      
+      // Get the summary from the appropriate API
+      const summaryResponse = await fetch(summaryEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           searchResults: searchData.results,
-          model: 'o1-mini'
+          model: model
         }),
       });
 
@@ -133,7 +137,6 @@ export default function SearchPage() {
                 answer={searchState.answer}
                 sources={searchState.sources}
                 reasoning={searchState.reasoning}
-                onFollowUpQuestion={handleSearch}
                 isLoading={searchState.isLoading}
               />
             </div>

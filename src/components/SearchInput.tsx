@@ -10,6 +10,7 @@ interface SearchInputProps {
 export function SearchInput({ onSearch, isLoading = false, showSuggestions = false }: SearchInputProps) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isShowingSuggestions, setIsShowingSuggestions] = useState(showSuggestions);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,8 +20,12 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+  };
+
   useEffect(() => {
-    if (showSuggestions && query.trim()) {
+    if (isShowingSuggestions && query.trim()) {
       // Here you could integrate with a real search suggestions API
       const demoSuggestions = [
         `${query} definition`,
@@ -32,41 +37,45 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
     } else {
       setSuggestions([]);
     }
-  }, [query, showSuggestions]);
+  }, [query, isShowingSuggestions]);
 
   return (
     <div className="max-w-3xl mx-auto px-4">
-      <form onSubmit={handleSubmit} className="relative">
+      <form onSubmit={handleSubmit} className="relative w-full">
         <div className="relative">
           <input
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="What do you want to know?"
-            className="w-full px-4 py-3 pl-12 pr-32 text-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
-            disabled={isLoading}
+            onChange={handleInputChange}
+            onFocus={() => setIsShowingSuggestions(true)}
+            placeholder="Ask any question"
+            className="w-full px-6 py-3 bg-gray-800 text-white rounded-full shadow-lg shadow-black/20 border-4 border-gray-700 ring-4 ring-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent"
           />
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-6 w-6 text-gray-400" />
-          </div>
-          
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-2">
-            <button
-              type="button"
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              onClick={() => {/* TODO: Implement voice search */}}
-            >
-              <Mic className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              onClick={() => {/* TODO: Implement image search */}}
-            >
-              <Camera className="h-5 w-5" />
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-white"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
+            ) : (
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            )}
+          </button>
         </div>
 
         {isLoading && (
@@ -77,7 +86,7 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
       </form>
 
       {/* Search Suggestions */}
-      {showSuggestions && suggestions.length > 0 && (
+      {isShowingSuggestions && suggestions.length > 0 && (
         <div className="absolute w-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           {suggestions.map((suggestion, index) => (
             <button
