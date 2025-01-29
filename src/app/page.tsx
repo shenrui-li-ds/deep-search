@@ -1,48 +1,57 @@
-import Link from "next/link";
+'use client';
+
+import { useState } from 'react';
+import { SearchInput } from '@/components/SearchInput';
+import { SearchResults } from '@/components/SearchResults';
+import { Layout } from '@/components/Layout';
+import { useRouter } from 'next/navigation';
+
+interface SearchResult {
+  url: string;
+  title: string;
+  content: string;
+  score: number;
+}
 
 export default function Home() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSearch = async (query: string) => {
+    router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-8">
-      <div>
-        <h2 className="text-2xl font-semibold text-center border p-4 font-mono rounded-md">
-          Get started by choosing a template path from the /paths/ folder.
-        </h2>
-      </div>
-      <div>
-        <h1 className="text-6xl font-bold text-center">Make anything you imagine 🪄</h1>
-        <h2 className="text-2xl text-center font-light text-gray-500 pt-4">
-          This whole page will be replaced when you run your template path.
-        </h2>
-      </div>
-      <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">AI Chat App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            An intelligent conversational app powered by AI models, featuring real-time responses
-            and seamless integration with Next.js and various AI providers.
-          </p>
+    <Layout>
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-5xl font-bold mb-8 text-gray-900 dark:text-white">
+          DeepSearch
+        </h1>
+        <div className="w-full max-w-2xl">
+          <SearchInput onSearch={handleSearch} isLoading={isLoading} showSuggestions />
         </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">AI Image Generation App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            Create images from text prompts using AI, powered by the Replicate API and Next.js.
-          </p>
-        </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">Social Media App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            A feature-rich social platform with user profiles, posts, and interactions using
-            Firebase and Next.js.
-          </p>
-        </div>
-        <div className="border rounded-lg p-6 hover:bg-gray-100 transition-colors">
-          <h3 className="text-xl font-semibold">Voice Notes App</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            A voice-based note-taking app with real-time transcription using Deepgram API, 
-            Firebase integration for storage, and a clean, simple interface built with Next.js.
-          </p>
+        <div className="mt-12 space-y-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Try searching for:
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {[
+              "What is quantum computing?",
+              "Latest AI developments",
+              "Climate change solutions",
+              "Space exploration news"
+            ].map((suggestion) => (
+              <button
+                key={suggestion}
+                onClick={() => handleSearch(suggestion)}
+                className="px-4 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    </main>
+    </Layout>
   );
 }
