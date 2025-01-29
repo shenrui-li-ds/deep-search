@@ -12,6 +12,7 @@ interface Source {
 
 interface SearchResultsProps {
   query: string;
+  refinedQuery: string;
   answer: string;
   sources: Source[];
   reasoning?: string;
@@ -21,6 +22,7 @@ interface SearchResultsProps {
 
 export function SearchResults({ 
   query, 
+  refinedQuery,
   answer, 
   sources, 
   reasoning, 
@@ -49,8 +51,8 @@ export function SearchResults({
             {/* Query */}
             <div>
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Query</h2>
-              <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <p className="text-gray-700 dark:text-gray-300">{query}</p>
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
+                <p className="text-gray-800 dark:text-gray-200">{refinedQuery || query}</p>
               </div>
             </div>
 

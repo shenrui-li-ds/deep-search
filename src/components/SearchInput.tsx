@@ -50,7 +50,7 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
             onChange={handleInputChange}
             onFocus={() => setIsShowingSuggestions(true)}
             placeholder="Ask any question"
-            className="w-full px-6 py-3 bg-gray-800 text-white rounded-full shadow-lg shadow-black/20 border-4 border-gray-700 ring-4 ring-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-6 py-3 bg-gray-800 text-white rounded-full shadow-lg shadow-black/20 border-2 border-gray-700 ring-4 ring-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent"
           />
           <button
             type="submit"
@@ -58,7 +58,7 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
             disabled={isLoading}
           >
             {isLoading ? (
-              <div className="w-5 h-5 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             ) : (
               <svg
                 className="w-5 h-5"
@@ -77,17 +77,11 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
             )}
           </button>
         </div>
-
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-gray-800/50 rounded-lg">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        )}
       </form>
 
       {/* Search Suggestions */}
       {isShowingSuggestions && suggestions.length > 0 && (
-        <div className="absolute w-full mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="absolute w-full mt-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           {suggestions.map((suggestion, index) => (
             <button
               key={index}

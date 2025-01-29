@@ -30,16 +30,42 @@ export async function POST(req: Request) {
     }
 
     try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      
+      // Calculate date 6 months ago for reference
+      const sixMonthsAgo = new Date(currentDate);
+      sixMonthsAgo.setMonth(currentDate.getMonth() - 6);
+      
       const response = await openai.chat.completions.create({
         model: model,
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that refines search queries to make them more effective. Your goal is to make the query more specific and targeted while maintaining its original intent.',
+            content: `You are a helpful assistant that refines search queries to make them more effective. Your goal is to make the query more specific and targeted while maintaining its original intent.
+
+Current date: ${currentDate.toISOString()}
+
+Guidelines for query refinement:
+1. For temporal queries (e.g., "latest", "recent", "new"):
+   - Default to the current year and recent months unless specified otherwise
+   - Include specific time ranges when relevant
+   - For "latest" queries, focus on the most recent developments
+2. For trending topics:
+   - Focus on recent developments and current state
+   - Include temporal markers for better context
+3. For general queries:
+   - Add relevant qualifiers to improve search precision
+   - Maintain user's original intent
+   - Include important context that might be implied
+
+Always aim to make queries more specific while keeping them natural and searchable.`,
           },
           {
             role: 'user',
-            content: `Please refine this search query to make it more effective: "${query}"`,
+            content: `Please refine this search query to make it more effective and time-relevant: "${query}"
+
+For queries about recent events or developments, consider the current date (${currentDate.toLocaleDateString()}) when refining the query.`,
           },
         ],
         temperature: 0.3,

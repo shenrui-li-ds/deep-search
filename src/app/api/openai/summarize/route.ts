@@ -40,9 +40,30 @@ export async function POST(req: Request) {
         messages: [
           {
             role: 'user',
-            content: `You are a helpful assistant that generates clear, accurate summaries from web search results. Include relevant information and cite sources when appropriate. Use markdown formatting for better readability.
+            content: `Analyze and summarize the following search results, following this exact format:
 
-Please analyze and summarize the following search results:
+# Key Findings
+Provide 2-3 bullet points of the most important takeaways. Each point should end with a citation link in the format [[Source X]](URL).
+
+# Detailed Analysis
+Provide a comprehensive analysis of the topic. Each fact or quote should be followed by a citation link in the format [[Source X]](URL) where X is the source number and URL is the actual URL from that source.
+
+Example citation format:
+"This is a direct quote or fact" [[Source 1]](https://example.com)
+
+# References
+List all sources used, numbered in order of appearance:
+[Source 1] Title of Source 1 - URL
+[Source 2] Title of Source 2 - URL
+etc.
+
+# Related Topics
+Suggest 3 related topics that the user might be interested in, formatted as clickable markdown links:
+- [First Related Topic](First Related Topic)
+- [Second Related Topic](Second Related Topic)
+- [Third Related Topic](Third Related Topic)
+
+Here are the search results to analyze:
 
 ${context}`,
           },

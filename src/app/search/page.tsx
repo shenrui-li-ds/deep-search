@@ -14,6 +14,7 @@ interface Source {
 
 interface SearchState {
   query: string;
+  refinedQuery: string;
   answer: string;
   sources: Source[];
   reasoning: string;
@@ -25,6 +26,7 @@ export default function SearchPage() {
   const searchParams = useSearchParams();
   const [searchState, setSearchState] = useState<SearchState>({
     query: '',
+    refinedQuery: '',
     answer: '',
     sources: [],
     reasoning: '',
@@ -36,6 +38,7 @@ export default function SearchPage() {
     setSearchState(prev => ({ 
       ...prev, 
       query,
+      refinedQuery: '',
       isLoading: true, 
       error: null,
       answer: '',
@@ -56,6 +59,11 @@ export default function SearchPage() {
       }
 
       const { refinedQuery } = await refineResponse.json();
+      
+      setSearchState(prev => ({
+        ...prev,
+        refinedQuery
+      }));
 
       // Then, get search results from Tavily
       const searchResponse = await fetch('/api/tavily/search', {
@@ -92,6 +100,7 @@ export default function SearchPage() {
 
       setSearchState(prev => ({
         ...prev,
+        isLoading: false,
         answer: summary || '',
         sources: searchData.results.map((result: any) => ({
           title: result.title,
@@ -99,8 +108,6 @@ export default function SearchPage() {
           snippet: result.content
         })),
         reasoning: reasoning || '',
-        isLoading: false,
-        error: null,
       }));
     } catch (error) {
       console.error('Search error:', error);
@@ -134,6 +141,7 @@ export default function SearchPage() {
             <div className="mb-8">
               <SearchResults
                 query={searchState.query}
+                refinedQuery={searchState.refinedQuery}
                 answer={searchState.answer}
                 sources={searchState.sources}
                 reasoning={searchState.reasoning}

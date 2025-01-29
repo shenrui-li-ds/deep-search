@@ -43,13 +43,35 @@ export async function POST(req: Request) {
         model: 'deepseek-reasoner',
         messages: [
           {
+            role: 'system',
+            content: `You are a helpful AI assistant that generates clear, accurate summaries from web search results. Always maintain a consistent format in your responses with clear sections and proper citations. Make sure to include clickable citation links after each fact or quote.`
+          },
+          {
             role: 'user',
-            content: `You are a helpful assistant that generates clear, accurate summaries from web search results. Please provide your response in two parts:
+            content: `Analyze and summarize the following search results, following this exact format:
 
-1. REASONING: First, explain your thought process and how you're analyzing the information.
-2. SUMMARY: Then, provide a clear, well-structured summary of the information, using markdown formatting and citing sources when appropriate.
+# Key Findings
+Provide 2-3 bullet points of the most important takeaways. Each point should end with a citation link in the format [[Source X]](URL).
 
-Please analyze these search results:
+# Detailed Analysis
+Provide a comprehensive analysis of the topic. Each fact or quote should be followed by a citation link in the format [[Source X]](URL) where X is the source number and URL is the actual URL from that source.
+
+Example citation format:
+"This is a direct quote or fact" [[Source 1]](https://example.com)
+
+# References
+List all sources used, numbered in order of appearance:
+[Source 1] Title of Source 1 - URL
+[Source 2] Title of Source 2 - URL
+etc.
+
+# Related Topics
+Suggest 3 related topics that the user might be interested in, formatted as clickable markdown links:
+- [First Related Topic](First Related Topic)
+- [Second Related Topic](Second Related Topic)
+- [Third Related Topic](Third Related Topic)
+
+Here are the search results to analyze:
 
 ${formattedResults}`,
           },
