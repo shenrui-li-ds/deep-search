@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { summarizeSearchResultsPrompt } from '@/lib/prompts';
+import { summarizeSearchResultsPrompt, generateRelatedSearchesPrompt } from '@/lib/prompts';
+import { getCurrentDate } from '@/lib/utils';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
@@ -21,56 +22,66 @@ export async function POST(req: Request) {
       );
     }
 
-    const { query, results, model = 'gpt-4o' } = await req.json();
+    const { query, results } = await req.json();
 
-    if (!results?.length) {
-      return NextResponse.json(
-        { error: 'Search results are required' },
-        { status: 400 }
-      );
+    if (!query) {
+      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    // Prepare context from search results
-    const context = results
-      .map((result: any, index: number) => 
-        `[${index + 1}] ${result.title}\nURL: ${result.url}\n${result.snippet}`
-      )
-      .join('\n\n');
+    if (!results?.length) {
+      return NextResponse.json({ error: 'No results to summarize' }, { status: 400 });
+    }
 
-    console.log('Making OpenAI summarize request:', {
-      model,
-      context: context.slice(0, 100) + '...',
-      resultCount: results.length,
-    });
-
-    const response = await openai.chat.completions.create({
-      model: model,
+    // First, generate the summary
+    const summaryResponse = await openai.chat.completions.create({
+      model: 'chatgpt-4o-latest',
       messages: [
         {
           role: 'system',
-          content: summarizeSearchResultsPrompt(query, new Date().toISOString())
+          content: summarizeSearchResultsPrompt(query, getCurrentDate()),
         },
         {
           role: 'user',
-          content: `Here are the search results to analyze:\n\n${context}`
-        }
+          content: JSON.stringify(results),
+        },
       ],
-      temperature: 0.3,
+      temperature: 1.0,
     });
 
-    const content = response.choices[0]?.message?.content;
-    
-    if (!content) {
-      console.error('Invalid response format from OpenAI');
+    const summary = summaryResponse.choices[0]?.message?.content;
+
+    if (!summary) {
       return NextResponse.json(
         { error: 'Failed to generate summary' },
         { status: 500 }
       );
     }
 
+    // Then, generate related searches based on the summary
+    const relatedSearchesResponse = await openai.chat.completions.create({
+      model: 'chatgpt-4o-latest',
+      messages: [
+        {
+          role: 'system',
+          content: generateRelatedSearchesPrompt(summary),
+        },
+      ],
+      temperature: 0.9,
+    });
+
+    let relatedSearches = [];
+    try {
+      const relatedSearchesContent = relatedSearchesResponse.choices[0]?.message?.content;
+      if (relatedSearchesContent) {
+        relatedSearches = JSON.parse(relatedSearchesContent);
+      }
+    } catch (error) {
+      console.error('Failed to parse related searches:', error);
+    }
+
     return NextResponse.json({
-      answer: content,
-      explanation: 'Summary generated based on search results'
+      answer: summary,
+      relatedSearches,
     });
   } catch (error: any) {
     console.error('Error in summarize route:', error);

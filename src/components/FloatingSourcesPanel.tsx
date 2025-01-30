@@ -1,6 +1,7 @@
 'use client';
 
 import { Link as LinkIcon } from 'lucide-react';
+import { SourceIcon } from './SourceIcon';
 
 interface Source {
   title: string;
@@ -44,9 +45,7 @@ export function FloatingSourcesPanel({ sources, isOpen }: FloatingSourcesPanelPr
             <div key={index} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
               <div className="flex items-start gap-3">
                 <div className="flex-none w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                    {index + 1}
-                  </span>
+                  <SourceIcon url={source.url} size={20} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <a
@@ -56,7 +55,6 @@ export function FloatingSourcesPanel({ sources, isOpen }: FloatingSourcesPanelPr
                     className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2 mb-1"
                   >
                     <span className="text-sm font-medium line-clamp-2">{source.title || getDomain(source.url)}</span>
-                    <LinkIcon className="h-4 w-4 flex-shrink-0" />
                   </a>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {source.snippet}

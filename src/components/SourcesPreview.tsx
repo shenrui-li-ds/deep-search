@@ -1,6 +1,7 @@
 'use client';
 
 import { Link as LinkIcon } from 'lucide-react';
+import { SourceIcon } from './SourceIcon';
 
 interface Source {
   title: string;
@@ -42,9 +43,7 @@ export function SourcesPreview({ sources, onExpand, isExpanded }: SourcesPreview
           <div key={index} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
             <div className="flex items-start gap-3">
               <div className="flex-none w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {index + 1}
-                </span>
+                <SourceIcon url={source.url} size={16} />
               </div>
               <div className="flex-1 min-w-0">
                 <a

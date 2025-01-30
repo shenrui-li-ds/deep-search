@@ -4,6 +4,7 @@ import ReactMarkdown, { type ExtraProps } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FloatingSourcesPanel } from './FloatingSourcesPanel';
 import { SourcesPreview } from './SourcesPreview';
+import { SourceIcon } from './SourceIcon'; // Import SourceIcon
 
 interface Source {
   title: string;
@@ -58,6 +59,47 @@ export function SearchResults({
     // Implement logic to handle related search
   };
 
+  const handleCopyAnswer = async () => {
+    try {
+      await navigator.clipboard.writeText(answer);
+      // You could add a toast notification here
+    } catch (err) {
+      console.error('Failed to copy answer:', err);
+    }
+  };
+
+  const handleDownloadAnswer = () => {
+    try {
+      // Create a blob with the markdown content
+      const blob = new Blob([answer], { type: 'text/markdown;charset=utf-8' });
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      
+      // Generate filename based on the query
+      const sanitizedQuery = query.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const maxLength = 50; // Maximum length for the query part of the filename
+      const truncatedQuery = sanitizedQuery.length > maxLength 
+        ? `${sanitizedQuery.slice(0, maxLength)}` 
+        : sanitizedQuery;
+      const timestamp = new Date().toISOString().split('T')[0]; // Add date for uniqueness
+      const filename = `${truncatedQuery}-${timestamp}.md`;
+      
+      link.download = filename;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL object
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      console.error('Failed to download answer:', err);
+    }
+  };
+
   return (
     <div className="relative w-full">
       <div className="w-full space-y-8">
@@ -106,7 +148,7 @@ export function SearchResults({
         {/* Loading State */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-transparent"></div>
           </div>
         ) : (
           <div className="space-y-6">
@@ -149,105 +191,132 @@ export function SearchResults({
             <div>
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Answer</h2>
               <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  className="prose dark:prose-invert max-w-none space-y-6"
-                  components={{
-                    h1: ({ node, ...props }) => (
-                      <h1 {...props} className="text-2xl font-bold mt-8 mb-4 text-gray-900 dark:text-white" />
-                    ),
-                    h2: ({ node, ...props }) => (
-                      <h2 {...props} className="text-xl font-bold mt-6 mb-4 text-gray-900 dark:text-white" />
-                    ),
-                    h3: ({ node, ...props }) => (
-                      <h3 {...props} className="text-lg font-bold mt-5 mb-3 text-gray-900 dark:text-white" />
-                    ),
-                    p: ({ node, ...props }) => (
-                      <p {...props} className="mb-4 last:mb-0 text-gray-700 dark:text-gray-300 leading-relaxed" />
-                    ),
-                    ul: ({ node, ...props }) => (
-                      <ul {...props} className="list-disc pl-6 mb-4 space-y-2 text-gray-700 dark:text-gray-300" />
-                    ),
-                    ol: ({ node, ...props }) => (
-                      <ol {...props} className="list-decimal pl-6 mb-4 space-y-2 text-gray-700 dark:text-gray-300" />
-                    ),
-                    li: ({ node, ...props }) => (
-                      <li {...props} className="text-gray-700 dark:text-gray-300" />
-                    ),
-                    a: ({ node, ...props }) => {
-                      const href = props.href || '';
-                      const childContent = props.children && Array.isArray(props.children) 
-                        ? props.children[0]?.toString() 
-                        : props.children?.toString() || '';
-                      const isCitation = /^\[\d+(?:,\s*\d+)*\]$/.test(childContent);
-                      
-                      if (isCitation) {
-                        const citations = childContent
-                          .replace(/[\[\]]/g, '')
-                          .split(',')
-                          .map((num: string) => parseInt(num.trim()));
+                <div className="prose dark:prose-invert max-w-none space-y-6">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ node, ...props }) => (
+                        <h1 {...props} className="text-2xl font-bold mt-8 mb-4 text-gray-900 dark:text-white" />
+                      ),
+                      h2: ({ node, ...props }) => (
+                        <h2 {...props} className="text-xl font-bold mt-6 mb-4 text-gray-900 dark:text-white" />
+                      ),
+                      h3: ({ node, ...props }) => (
+                        <h3 {...props} className="text-lg font-bold mt-5 mb-3 text-gray-900 dark:text-white" />
+                      ),
+                      p: ({ node, ...props }) => (
+                        <p {...props} className="mb-4 last:mb-0 text-gray-700 dark:text-gray-300 leading-relaxed" />
+                      ),
+                      ul: ({ node, ...props }) => (
+                        <ul {...props} className="list-disc pl-6 mb-4 space-y-2 text-gray-700 dark:text-gray-300" />
+                      ),
+                      ol: ({ node, ...props }) => (
+                        <ol {...props} className="list-decimal pl-6 mb-4 space-y-2 text-gray-700 dark:text-gray-300" />
+                      ),
+                      li: ({ node, ...props }) => (
+                        <li {...props} className="text-gray-700 dark:text-gray-300" />
+                      ),
+                      a: ({ node, ...props }) => {
+                        const href = props.href || '';
+                        const childContent = props.children && Array.isArray(props.children) 
+                          ? props.children[0]?.toString() 
+                          : props.children?.toString() || '';
+                        const isCitation = /^\[\d+(?:,\s*\d+)*\]$/.test(childContent);
+                        
+                        if (isCitation) {
+                          const citations = childContent
+                            .replace(/[\[\]]/g, '')
+                            .split(',')
+                            .map((num: string) => parseInt(num.trim()));
+                          
+                          return (
+                            <span className="inline-flex gap-1">
+                              {citations.map((citation: number, index: number) => {
+                                const source = sources[citation - 1];
+                                return (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded text-sm cursor-pointer relative group"
+                                    onMouseEnter={() => setHoveredCitation(citation)}
+                                    onMouseLeave={() => setHoveredCitation(null)}
+                                    onClick={() => setShowSourcesPanel(!showSourcesPanel)}
+                                  >
+                                    <SourceIcon url={source?.url || ''} size={12} />
+                                    <span>{citation}</span>
+                                    <div className="invisible group-hover:visible absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-white dark:bg-gray-800 rounded shadow-lg text-sm z-10">
+                                      {source?.title || getDomain(source?.url || '')}
+                                    </div>
+                                  </span>
+                                );
+                              })}
+                            </span>
+                          );
+                        }
                         
                         return (
-                          <span className="inline-flex gap-1">
-                            {citations.map((citation: number, index: number) => (
-                              <span
-                                key={index}
-                                className="inline-block px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded text-sm cursor-pointer relative group"
-                                onMouseEnter={() => setHoveredCitation(citation)}
-                                onMouseLeave={() => setHoveredCitation(null)}
-                                onClick={() => setShowSourcesPanel(!showSourcesPanel)}
-                              >
-                                {citation}
-                                <div className="invisible group-hover:visible absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-white dark:bg-gray-800 rounded shadow-lg text-sm z-10">
-                                  {sources[citation - 1]?.title || getDomain(sources[citation - 1]?.url || '')}
-                                </div>
-                              </span>
-                            ))}
-                          </span>
+                          <a 
+                            {...props} 
+                            className="text-purple-500 hover:text-purple-600 dark:text-purple-400 underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
                         );
-                      }
-                      
-                      return (
-                        <a 
-                          {...props} 
-                          className="text-purple-500 hover:text-purple-600 dark:text-purple-400 underline"
-                          target="_blank"
-                          rel="noopener noreferrer"
+                      },
+                      blockquote: ({ node, ...props }) => (
+                        <blockquote
+                          {...props}
+                          className="border-l-4 border-gray-200 dark:border-gray-700 pl-4 my-4 italic text-gray-700 dark:text-gray-300"
                         />
-                      );
-                    },
-                    blockquote: ({ node, ...props }) => (
-                      <blockquote
-                        {...props}
-                        className="border-l-4 border-gray-200 dark:border-gray-700 pl-4 my-4 italic text-gray-700 dark:text-gray-300"
-                      />
-                    ),
-                    code: ({ node, inline, children, ...props }: ComponentPropsWithoutRef<'code'> & { 
-                      node?: any;
-                      inline?: boolean;
-                    }) => {
-                      if (inline) {
+                      ),
+                      code: ({ node, inline, children, ...props }: ComponentPropsWithoutRef<'code'> & { 
+                        node?: any;
+                        inline?: boolean;
+                      }) => {
+                        if (inline) {
+                          return (
+                            <code
+                              {...props}
+                              className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm"
+                            >
+                              {children}
+                            </code>
+                          );
+                        }
                         return (
-                          <code
-                            {...props}
-                            className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm"
-                          >
-                            {children}
-                          </code>
+                          <pre className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-x-auto">
+                            <code {...props} className="text-sm">
+                              {children}
+                            </code>
+                          </pre>
                         );
-                      }
-                      return (
-                        <pre className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-x-auto">
-                          <code {...props} className="text-sm">
-                            {children}
-                          </code>
-                        </pre>
-                      );
-                    },
-                  }}
-                >
-                  {answer}
-                </ReactMarkdown>
+                      },
+                    }}
+                  >
+                    {answer}
+                  </ReactMarkdown>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="mt-6 flex gap-4">
+                  <button
+                    onClick={handleCopyAnswer}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full shadow-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none"
+                  >
+                    <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    Copy Answer
+                  </button>
+                  <button
+                    onClick={handleDownloadAnswer}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full shadow-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none"
+                  >
+                    <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Markdown
+                  </button>
+                </div>
 
                 {/* Related Topics */}
                 {relatedTopics.length > 0 && (

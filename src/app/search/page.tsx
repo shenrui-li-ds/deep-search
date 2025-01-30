@@ -12,7 +12,7 @@ interface Source {
   title: string;
   url: string;
   snippet: string;
-  images: { src: string; alt: string }[];
+  images?: { src: string; alt: string }[];
 }
 
 interface SearchState {
@@ -118,7 +118,9 @@ export default function SearchPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           query: refined_query.trim(),
-          results: searchData.results
+          results: searchData.results,
+          refinedQuery: refined_query,
+          reasoning: refineExplanation
         }),
       });
 
@@ -138,8 +140,7 @@ export default function SearchPage() {
         ...prev,
         answer: summaryData.answer,
         sources: searchData.results,
-        reasoning: summaryData.explanation,
-        relatedSearches: searchData.relatedSearches || [],
+        relatedSearches: summaryData.relatedSearches || [],
         isLoading: false,
       }));
     } catch (error) {
