@@ -1,7 +1,46 @@
 import { NextResponse } from 'next/server';
 
+// Debug logging for environment variables
+console.log('==== TAVILY API DEBUG ====');
+console.log('Raw env var:', process.env.TAVILY_API_KEY ? 'exists' : 'missing');
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY?.trim();
+console.log('Processed key:', {
+  exists: !!TAVILY_API_KEY,
+  length: TAVILY_API_KEY?.length,
+  prefix: TAVILY_API_KEY?.slice(0, 5),
+  hasSpaces: TAVILY_API_KEY?.includes(' '),
+});
+console.log('========================');
+
 const TAVILY_API_URL = 'https://api.tavily.com/search';
+
+// Generate related searches based on the query and results
+function generateRelatedSearches(query: string, results: any[]) {
+  const keywords = new Set<string>();
+  
+  // Extract keywords from titles and snippets
+  results.forEach(result => {
+    const words = (result.title + ' ' + result.snippet)
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(word => word.length > 4 && !query.toLowerCase().includes(word));
+    words.forEach(word => keywords.add(word));
+  });
+
+  // Generate variations of the original query
+  const suggestions = [
+    query + ' latest developments',
+    query + ' tutorial',
+    query + ' examples',
+    'how to ' + query,
+    'best ' + query + ' practices',
+    query + ' vs ' + Array.from(keywords)[0],
+    query + ' for beginners',
+    'advanced ' + query,
+  ].slice(0, 8); // Limit to 8 suggestions
+
+  return suggestions.map(query => ({ query }));
+}
 
 export async function POST(req: Request) {
   try {
@@ -15,30 +54,39 @@ export async function POST(req: Request) {
     }
 
     const { query } = await req.json();
+    console.log('Received query:', query);
 
     if (!query) {
+      console.error('Query is missing from request');
       return NextResponse.json(
         { error: 'Query is required' },
         { status: 400 }
       );
     }
 
-    // Log request details (remove in production)
-    console.log('Making Tavily API request with key:', TAVILY_API_KEY.slice(0, 4) + '...');
+    const requestBody = {
+      api_key: TAVILY_API_KEY,
+      query,
+      search_depth: 'advanced',
+      include_images: true,
+      max_results: 10,
+    };
+
+    console.log('Making Tavily API request:', {
+      url: TAVILY_API_URL,
+      body: {
+        ...requestBody,
+        api_key: `${TAVILY_API_KEY.slice(0, 5)}...`,
+      },
+    });
 
     // Search with Tavily API
     const response = await fetch(TAVILY_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${TAVILY_API_KEY}`,
       },
-      body: JSON.stringify({
-        query,
-        search_depth: 'advanced',
-        include_images: false,
-        max_results: 10,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -46,28 +94,56 @@ export async function POST(req: Request) {
       console.error('Tavily API error:', {
         status: response.status,
         statusText: response.statusText,
-        error: errorData
+        error: errorData,
+        headers: Object.fromEntries(response.headers.entries()),
       });
 
       if (response.status === 401) {
         return NextResponse.json(
-          { error: 'Invalid Tavily API key. Please check your TAVILY_API_KEY in .env.local and ensure it does not have quotes or extra spaces.' },
+          { error: 'Invalid Tavily API key. Please check your TAVILY_API_KEY in .env.local' },
           { status: 401 }
         );
       }
 
       return NextResponse.json(
-        { error: `Tavily API error: ${response.statusText}` },
+        { error: `Failed to get search results from Tavily: ${errorData.message || response.statusText}` },
         { status: response.status }
       );
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    console.log('Tavily API response:', {
+      hasResults: !!data.results,
+      resultCount: data.results?.length || 0,
+    });
+    
+    if (!data.results) {
+      console.error('Invalid response format from Tavily:', data);
+      return NextResponse.json(
+        { error: 'Invalid response format from Tavily' },
+        { status: 500 }
+      );
+    }
+
+    // Format the results to match our expected structure
+    const formattedResults = data.results.map((result: any) => ({
+      title: result.title || '',
+      url: result.url || '',
+      snippet: result.content || '',
+      images: result.image_urls?.map((url: string) => ({ src: url, alt: '' })) || []
+    }));
+
+    // Generate related searches
+    const relatedSearches = generateRelatedSearches(query, formattedResults);
+
+    return NextResponse.json({ 
+      results: formattedResults,
+      relatedSearches
+    });
   } catch (error) {
-    console.error('Tavily search error:', error);
+    console.error('Search error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to perform search' },
       { status: 500 }
     );
   }

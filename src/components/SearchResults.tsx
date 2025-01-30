@@ -2,6 +2,8 @@ import { useState, type ComponentPropsWithoutRef } from 'react';
 import { ChevronDown, ChevronUp, Link as LinkIcon } from 'lucide-react';
 import ReactMarkdown, { type ExtraProps } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { FloatingSourcesPanel } from './FloatingSourcesPanel';
+import { SourcesPreview } from './SourcesPreview';
 
 interface Source {
   title: string;
@@ -9,6 +11,10 @@ interface Source {
   snippet: string;
   domain?: string;
   images?: { src: string; alt: string }[];
+}
+
+interface RelatedSearch {
+  query: string;
 }
 
 interface SearchResultsProps {
@@ -19,6 +25,8 @@ interface SearchResultsProps {
   reasoning?: string;
   isLoading?: boolean;
   relatedTopics?: string[];
+  relatedSearches?: RelatedSearch[];
+  error?: string;
 }
 
 export function SearchResults({ 
@@ -28,11 +36,13 @@ export function SearchResults({
   sources, 
   reasoning, 
   isLoading,
-  relatedTopics = [] 
+  relatedTopics = [],
+  relatedSearches = [],
+  error,
 }: SearchResultsProps) {
-  const [showSources, setShowSources] = useState(false);
   const [showReasoning, setShowReasoning] = useState(false);
   const [hoveredCitation, setHoveredCitation] = useState<number | null>(null);
+  const [showSourcesPanel, setShowSourcesPanel] = useState(false);
 
   // Function to extract domain from URL
   const getDomain = (url: string) => {
@@ -44,17 +54,69 @@ export function SearchResults({
     }
   };
 
+  const handleRelatedSearch = (query: string) => {
+    // Implement logic to handle related search
+  };
+
   return (
     <div className="relative w-full">
-      <div className="max-w-4xl mx-auto">
-        <div className="relative">
-          <div className="space-y-8">
-            {/* Query */}
-            <div>
-              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Query</h2>
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-                <p className="text-gray-800 dark:text-gray-200">{refinedQuery || query}</p>
+      <div className="w-full space-y-8">
+        {/* Query Refinement */}
+        {refinedQuery && refinedQuery !== query && reasoning && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Query Refinement</h2>
+            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
+              <div className="flex flex-col gap-2">
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">Original Query: </span>
+                  <span className="text-gray-600 dark:text-gray-400">{query}</span>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">Refined Query: </span>
+                  <span className="text-gray-600 dark:text-gray-400">{refinedQuery}</span>
+                </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                    Error
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                    {error}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Sources Preview */}
+            <div>
+              <SourcesPreview 
+                sources={sources} 
+                onExpand={() => setShowSourcesPanel(!showSourcesPanel)}
+                isExpanded={showSourcesPanel}
+              />
             </div>
 
             {/* Reasoning Process */}
@@ -133,20 +195,11 @@ export function SearchResults({
                                 className="inline-block px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded text-sm cursor-pointer relative group"
                                 onMouseEnter={() => setHoveredCitation(citation)}
                                 onMouseLeave={() => setHoveredCitation(null)}
+                                onClick={() => setShowSourcesPanel(!showSourcesPanel)}
                               >
                                 {citation}
                                 <div className="invisible group-hover:visible absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 bg-white dark:bg-gray-800 rounded shadow-lg text-sm z-10">
-                                  <a
-                                    href={sources[citation - 1]?.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-500 hover:text-blue-600 dark:text-blue-400 no-underline block"
-                                  >
-                                    {sources[citation - 1]?.title}
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                                      {sources[citation - 1]?.url}
-                                    </div>
-                                  </a>
+                                  {sources[citation - 1]?.title || getDomain(sources[citation - 1]?.url || '')}
                                 </div>
                               </span>
                             ))}
@@ -212,57 +265,35 @@ export function SearchResults({
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
 
-            {/* Sources Section */}
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Sources</h3>
-              <div className="space-y-4">
-                {sources.map((source, index) => (
-                  <div key={index} className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <a
-                          href={source.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-2"
+                {/* Related Searches */}
+                {relatedSearches.length > 0 && (
+                  <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Related Searches</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {relatedSearches.map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleRelatedSearch(item.query)}
+                          className="px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
                         >
-                          <span>{source.title || getDomain(source.url)}</span>
-                          <LinkIcon className="h-4 w-4" />
-                        </a>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {source.snippet}
-                        </p>
-                      </div>
+                          {item.query}
+                        </button>
+                      ))}
                     </div>
-                    
-                    {/* Image Gallery */}
-                    {source.images && source.images.length > 0 && (
-                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {source.images.map((image, imgIndex) => (
-                          <div key={imgIndex} className="relative aspect-video">
-                            <img
-                              src={image.src}
-                              alt={image.alt}
-                              className="rounded-lg object-cover w-full h-full"
-                              onError={(e) => {
-                                // Hide image on load error
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Floating Sources Panel */}
+      <FloatingSourcesPanel 
+        sources={sources} 
+        isOpen={showSourcesPanel}
+      />
     </div>
   );
 }

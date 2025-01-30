@@ -74,7 +74,19 @@ For queries about recent events or developments, consider the current date (${cu
 
       const refinedQuery = response.choices[0]?.message?.content?.replace(/^["']|["']$/g, '') || query;
 
-      return NextResponse.json({ refinedQuery });
+      // Validate the refined query
+      if (!refinedQuery || typeof refinedQuery !== 'string' || !refinedQuery.trim()) {
+        console.error('Invalid refined query:', refinedQuery);
+        return NextResponse.json(
+          { error: 'Invalid refined query format' },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ 
+        refined_query: refinedQuery.trim(),
+        explanation: 'Query refined for better search results'
+      });
     } catch (error: any) {
       console.error('OpenAI API error:', error);
       return NextResponse.json(

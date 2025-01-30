@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { SearchInput } from '@/components/SearchInput';
 import { SearchResults } from '@/components/SearchResults';
 import { Sidebar } from '@/components/Sidebar';
+import { useSettings } from '@/lib/settings-context';
+import { refineSearchQueryPrompt } from '@/lib/prompts';
 
 interface Source {
   title: string;
@@ -21,10 +23,12 @@ interface SearchState {
   reasoning: string;
   isLoading: boolean;
   error: string | null;
+  relatedSearches: { query: string }[];
 }
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
+  const { apiProvider } = useSettings();
   const [searchState, setSearchState] = useState<SearchState>({
     query: '',
     refinedQuery: '',
@@ -33,6 +37,7 @@ export default function SearchPage() {
     reasoning: '',
     isLoading: false,
     error: null,
+    relatedSearches: [],
   });
 
   const handleSearch = async (query: string) => {
@@ -44,98 +49,105 @@ export default function SearchPage() {
       error: null,
       answer: '',
       sources: [],
-      reasoning: '' 
+      reasoning: '',
+      relatedSearches: [],
     }));
 
     try {
-      // First, refine the query
-      const refineResponse = await fetch('/api/openai/refine', {
+      // First, refine the query using the selected provider
+      const refineResponse = await fetch(`/api/${apiProvider}/refine`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, model: 'gpt-4o' }),
+        body: JSON.stringify({ query }),
       });
 
+      const refineData = await refineResponse.json();
+
       if (!refineResponse.ok) {
-        throw new Error('Failed to refine query');
+        const errorMsg = refineData.error || 'Failed to refine query';
+        console.error('Refine error:', { status: refineResponse.status, error: errorMsg });
+        throw new Error(errorMsg);
       }
 
-      const { refinedQuery } = await refineResponse.json();
+      if (!refineData.refined_query) {
+        console.error('Invalid refine response:', refineData);
+        throw new Error('Invalid response from refinement service');
+      }
+
+      const refined_query = refineData.refined_query;
+      const refineExplanation = refineData.explanation;
       
       setSearchState(prev => ({
         ...prev,
-        refinedQuery
+        refinedQuery: refined_query,
+        reasoning: refineExplanation
       }));
 
-      // Then, get search results from Tavily
+      // Then perform the search with the refined query
       const searchResponse = await fetch('/api/tavily/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: refinedQuery }),
+        body: JSON.stringify({ 
+          query: refined_query.trim()
+        }),
       });
-
-      if (!searchResponse.ok) {
-        throw new Error('Failed to fetch search results');
-      }
 
       const searchData = await searchResponse.json();
 
-      // Fetch images from the source URLs
-      const imageResponse = await fetch('/api/scrape/images', {
+      if (!searchResponse.ok) {
+        const errorMsg = searchData.error || 'Failed to get search results';
+        console.error('Search error:', {
+          status: searchResponse.status,
+          error: errorMsg,
+          query: refined_query
+        });
+        throw new Error(errorMsg);
+      }
+
+      if (!searchData.results) {
+        console.error('No search results:', {
+          response: searchData,
+          query: refined_query
+        });
+        throw new Error('No search results found');
+      }
+
+      // Then, summarize the results using the selected provider
+      const summarizeResponse = await fetch(`/api/${apiProvider}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          urls: searchData.results.map((result: any) => result.url)
+          query: refined_query.trim(),
+          results: searchData.results
         }),
       });
 
-      let imageResults: { url: string; images: { src: string; alt: string }[] }[] = [];
-      if (imageResponse.ok) {
-        const imageData = await imageResponse.json();
-        imageResults = imageData.results;
+      const summaryData = await summarizeResponse.json();
+
+      if (!summarizeResponse.ok) {
+        const errorMsg = summaryData.error || 'Failed to summarize results';
+        console.error('Summarize error:', {
+          status: summarizeResponse.status,
+          error: errorMsg,
+          query: refined_query
+        });
+        throw new Error(errorMsg);
       }
-
-      // Choose the API endpoint based on the model
-      const model = 'o1-mini';
-      const summaryEndpoint = model.startsWith('o1') ? '/api/openai/summarize' : '/api/deepseek/summarize';
-      
-      // Get the summary from the appropriate API
-      const summaryResponse = await fetch(summaryEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          searchResults: searchData.results,
-          model: model
-        }),
-      });
-
-      if (!summaryResponse.ok) {
-        throw new Error('Failed to generate summary');
-      }
-
-      const { summary, reasoning } = await summaryResponse.json();
 
       setSearchState(prev => ({
         ...prev,
+        answer: summaryData.answer,
+        sources: searchData.results,
+        reasoning: summaryData.explanation,
+        relatedSearches: searchData.relatedSearches || [],
         isLoading: false,
-        answer: summary || '',
-        sources: searchData.results.map((result: any) => {
-          // Find matching images for this source
-          const imageResult = imageResults.find(ir => ir.url === result.url);
-          return {
-            title: result.title,
-            url: result.url,
-            snippet: result.content,
-            images: imageResult?.images || []
-          };
-        }),
-        reasoning: reasoning || '',
       }));
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('Search workflow error:', error);
       setSearchState(prev => ({
         ...prev,
+        error: error instanceof Error ? error.message : 'An unexpected error occurred',
         isLoading: false,
-        error: error instanceof Error ? error.message : 'An error occurred',
       }));
     }
   };
@@ -167,6 +179,7 @@ export default function SearchPage() {
                 sources={searchState.sources}
                 reasoning={searchState.reasoning}
                 isLoading={searchState.isLoading}
+                relatedSearches={searchState.relatedSearches}
               />
             </div>
           )}

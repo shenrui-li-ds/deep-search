@@ -40,7 +40,7 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
   }, [query, isShowingSuggestions]);
 
   return (
-    <div className="max-w-3xl mx-auto px-4">
+    <div className="max-w-4xl mx-auto px-4">
       <form onSubmit={handleSubmit} className="relative w-full">
         <div className="relative">
           <input
@@ -50,7 +50,7 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
             onChange={handleInputChange}
             onFocus={() => setIsShowingSuggestions(true)}
             placeholder="Ask any question"
-            className="w-full px-6 py-3 bg-gray-800 text-white rounded-full shadow-lg shadow-black/20 border-2 border-gray-700 ring-4 ring-gray-800 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-full shadow-lg shadow-black/20 border-2 border-gray-400 dark:border-gray-600 ring-4 ring-gray-200 dark:ring-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:border-transparent"
           />
           <button
             type="submit"

@@ -27,7 +27,7 @@ export default function Home() {
         <h1 className="text-5xl font-bold mb-8 text-gray-900 dark:text-white">
           DeepSearch
         </h1>
-        <div className="w-full max-w-2xl">
+        <div className="w-full">
           <SearchInput onSearch={handleSearch} isLoading={isLoading} showSuggestions />
         </div>
         <div className="mt-12 space-y-4">

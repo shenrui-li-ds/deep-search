@@ -11,7 +11,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="min-h-screen bg-black">
         <Sidebar />
         <main className="pl-64">
-          <div className="max-w-4xl mx-auto py-8 px-6">
+          <div className="max-w-[2560px] mx-auto py-8 px-6">
             {children}
           </div>
         </main>
