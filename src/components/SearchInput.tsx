@@ -78,27 +78,6 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
           </button>
         </div>
       </form>
-
-      {/* Search Suggestions */}
-      {isShowingSuggestions && suggestions.length > 0 && (
-        <div className="absolute w-full mt-2 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          {suggestions.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                setQuery(suggestion);
-                onSearch(suggestion);
-              }}
-              className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-            >
-              <div className="flex items-center">
-                <Search className="h-4 w-4 mr-3 text-gray-400" />
-                {suggestion}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
