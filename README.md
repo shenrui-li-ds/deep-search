@@ -6,7 +6,7 @@ DeepSearch is a modern web search application that combines the power of multipl
 
 - **Smart Query Refinement**: Automatically improves search queries for better results
 - **Multi-Provider Support**: 
-  - OpenAI (GPT-4)
+  - OpenAI
   - DeepSeek
   - Tavily Search API
 - **Rich Search Results**:
@@ -31,7 +31,7 @@ DeepSearch is a modern web search application that combines the power of multipl
   - DeepSeek
   - Tavily
 
-### Local Installation
+### 🖥️ Local Installation
 
 1. Clone the repository:
 ```bash
@@ -58,7 +58,7 @@ npm run dev
 
 Visit `http://localhost:3000` to start using DeepSearch.
 
-### Docker Installation
+### 🐋 Docker Installation
 
 1. Clone the repository and create `.env.local` as described above.
 
@@ -79,19 +79,6 @@ To stop the container:
 ```bash
 docker-compose down
 ```
-
-#### Docker Configuration
-
-The application is containerized using:
-- `Dockerfile`: Multi-stage build for optimal image size
-- `docker-compose.yml`: Container orchestration with environment variables
-
-Key features of our Docker setup:
-- Production-ready Node.js environment
-- Automatic environment variable injection
-- Volume mounting for local development
-- Container health checks
-- Automatic restart policy
 
 ## 🔧 How It Works
 
@@ -116,13 +103,8 @@ Key features of our Docker setup:
    - Image previews from sources
    - Related search suggestions
 
-## 🎨 UI Components
-
-- **SearchInput**: Main search bar with suggestions
-- **SearchResults**: Displays summary and sources
-- **Sidebar**: Provider selection and settings
-- **FloatingSourcesPanel**: Quick source reference
-- **SourcesPreview**: Compact source list view
+## 🎨 UI Preview
+TODO
 
 ## 🛠️ Configuration
 
@@ -147,6 +129,5 @@ Customize search behavior in `src/lib/settings-context.tsx`:
 
 MIT License - feel free to use this project for your own purposes.
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 🚧 In Development
+TODO
