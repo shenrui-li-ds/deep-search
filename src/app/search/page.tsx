@@ -76,12 +76,6 @@ export default function SearchPage() {
 
       const refined_query = refineData.refined_query;
       const refineExplanation = refineData.explanation;
-      
-      setSearchState(prev => ({
-        ...prev,
-        refinedQuery: refined_query,
-        reasoning: refineExplanation
-      }));
 
       // Then perform the search with the refined query
       const searchResponse = await fetch('/api/tavily/search', {
@@ -136,15 +130,18 @@ export default function SearchPage() {
         throw new Error(errorMsg);
       }
 
+      // Update state with all results at once
       setSearchState(prev => ({
         ...prev,
+        refinedQuery: refined_query,
+        reasoning: refineExplanation,
         answer: summaryData.answer,
         sources: searchData.results,
         relatedSearches: summaryData.relatedSearches || [],
         isLoading: false,
       }));
 
-      // Fetch images for sources
+      // Fetch images for sources after main state update
       const sourceUrls = searchData.results.map((source: Source) => source.url);
       const imagesResponse = await fetch('/api/scrape/images', {
         method: 'POST',
