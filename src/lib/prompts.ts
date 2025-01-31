@@ -9,7 +9,7 @@ Current date: ${currentDate}
 - Maintain user's original intent
 - Include important context that might be implied
 - For trending topics, focus on recent developments and current state
-- For temporal queries (e.g., "latest", "recent", "new"), include specific time ranges when relevant
+- For temporal queries (e.g., "latest", "recent", "new", "1918"), include specific time ranges when relevant
 - **DO NOT** infer the exact dates or times for a specific event or product when context is unclear
 
 ### Formatting Requirements

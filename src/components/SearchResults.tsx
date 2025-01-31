@@ -346,7 +346,7 @@ export function SearchResults({
                         <button
                           key={index}
                           onClick={() => handleRelatedSearch(item.query)}
-                          className="px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
+                          className="px-4 py-2 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors text-left whitespace-normal"
                         >
                           {item.query}
                         </button>
