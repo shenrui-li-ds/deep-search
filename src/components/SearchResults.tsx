@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { FloatingSourcesPanel } from './FloatingSourcesPanel';
 import { SourcesPreview } from './SourcesPreview';
 import { SourceIcon } from './SourceIcon'; // Import SourceIcon
+import { useRouter } from 'next/navigation';
 
 interface Source {
   title: string;
@@ -41,6 +42,7 @@ export function SearchResults({
   relatedSearches = [],
   error,
 }: SearchResultsProps) {
+  const router = useRouter();
   const [showReasoning, setShowReasoning] = useState(false);
   const [hoveredCitation, setHoveredCitation] = useState<number | null>(null);
   const [showSourcesPanel, setShowSourcesPanel] = useState(false);
@@ -56,7 +58,7 @@ export function SearchResults({
   };
 
   const handleRelatedSearch = (query: string) => {
-    // Implement logic to handle related search
+    router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
   const handleCopyAnswer = async () => {

@@ -24,10 +24,12 @@ async function scrapeImagesFromUrl(url: string) {
     const images: { src: string; alt: string }[] = [];
     
     // Find relevant images (excluding tiny icons, ads, etc.)
-    $('img').each((_, element) => {
+    $('article img, .content img, main img, img').each((_, element) => {
       const img = $(element);
-      const src = img.attr('src');
+      // Check multiple possible image source attributes
+      const src = img.attr('data-src') || img.attr('src') || img.attr('srcset') || '';
       const alt = img.attr('alt') || '';
+      const caption = img.parent().text().trim();
       const width = parseInt(img.attr('width') || '0');
       const height = parseInt(img.attr('height') || '0');
       
@@ -41,22 +43,33 @@ async function scrapeImagesFromUrl(url: string) {
       // Convert relative URLs to absolute
       const absoluteSrc = new URL(src, url).href;
       
-      // Skip common ad/tracking domains
-      if (absoluteSrc.includes('ads.') || 
+      // Skip SVG images
+      if (absoluteSrc.toLowerCase().endsWith('.svg')) return;
+      
+      // Skip common non-content images
+      if (absoluteSrc.toLowerCase().includes('logo') ||
+          absoluteSrc.toLowerCase().includes('avatar') ||
+          absoluteSrc.toLowerCase().includes('icon') ||
+          absoluteSrc.includes('ads.') || 
           absoluteSrc.includes('tracking.') || 
           absoluteSrc.includes('pixel.') ||
           absoluteSrc.includes('analytics.')) {
         return;
       }
+
+      // If the image has a caption or alt text, it's more likely to be content-relevant
+      const hasMetadata = alt.length > 0 || caption.length > 0;
       
       images.push({ 
         src: absoluteSrc,
-        alt 
+        alt: alt || caption // Use caption as fallback for alt text
       });
     });
     
-    // Return only the first few relevant images
-    return images.slice(0, 3);
+    // Return only the first few relevant images, prioritizing those with metadata
+    return images
+      .sort((a, b) => (b.alt?.length || 0) - (a.alt?.length || 0))
+      .slice(0, 3);
   } catch (error) {
     console.error(`Error scraping images from ${url}:`, error);
     return [];

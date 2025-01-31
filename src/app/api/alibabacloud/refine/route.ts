@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { refineSearchQueryPrompt } from '@/lib/prompts';
 import { getCurrentDate } from '@/lib/utils';
 
-const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const ALIBABACLOUD_API_KEY = process.env.ALIBABACLOUD_API_KEY;
+const ALIBABACLOUD_API_URL = 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions';
 
 export async function POST(req: Request) {
   try {
-    if (!DEEPSEEK_API_KEY) {
+    if (!ALIBABACLOUD_API_KEY) {
       return NextResponse.json(
-        { error: 'DeepSeek API key not configured' },
+        { error: 'AlibabaCloud API key not configured' },
         { status: 500 }
       );
     }
@@ -20,14 +20,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    const response = await fetch(DEEPSEEK_API_URL, {
+    const response = await fetch(ALIBABACLOUD_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Authorization': `Bearer ${ALIBABACLOUD_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'qwen-plus',
         messages: [
           {
             role: 'system',
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to call DeepSeek API');
+      throw new Error('Failed to call AlibabaCloud API');
     }
 
     const data = await response.json();
@@ -61,9 +61,9 @@ export async function POST(req: Request) {
       explanation: 'Query refined for better search results',
     });
   } catch (error: any) {
-    console.error('Error in refine route:', error);
+    console.error('Error in refine query:', error);
     return NextResponse.json(
-      { error: 'Failed to refine query' },
+      { error: error.message || 'Internal server error' },
       { status: 500 }
     );
   }

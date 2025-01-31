@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type ApiProvider = 'openai' | 'deepseek';
+export type ApiProvider = 'openai' | 'deepseek' | 'alibabacloud';
 
 interface SettingsContextType {
   apiProvider: ApiProvider;

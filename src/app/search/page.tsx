@@ -143,6 +143,32 @@ export default function SearchPage() {
         relatedSearches: summaryData.relatedSearches || [],
         isLoading: false,
       }));
+
+      // Fetch images for sources
+      const sourceUrls = searchData.results.map((source: Source) => source.url);
+      const imagesResponse = await fetch('/api/scrape/images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ urls: sourceUrls }),
+      });
+
+      if (imagesResponse.ok) {
+        const imagesData = await imagesResponse.json();
+        const sourcesWithImages = searchData.results.map((source: Source) => {
+          const imageResult = imagesData.results.find((r: any) => r.url === source.url);
+          return {
+            ...source,
+            images: imageResult?.images || [],
+          };
+        });
+
+        setSearchState(prev => ({
+          ...prev,
+          sources: sourcesWithImages,
+        }));
+      } else {
+        console.error('Failed to fetch images:', await imagesResponse.text());
+      }
     } catch (error) {
       console.error('Search workflow error:', error);
       setSearchState(prev => ({

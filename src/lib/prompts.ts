@@ -2,20 +2,18 @@ export const refineSearchQueryPrompt = (searchTerm: string, currentDate: string)
 
 Current date: ${currentDate}
 
-Guidelines for query refinement:
-1. For temporal queries (e.g., "latest", "recent", "new"):
-   - Default to the current year and recent months unless specified otherwise
-   - Include specific time ranges when relevant
-   - For "latest" queries, focus on the most recent developments
-2. For trending topics:
-   - Focus on recent developments and current state
-   - Include temporal markers for better context
-3. For general queries:
-   - Add relevant qualifiers to improve search precision
-   - Maintain user's original intent
-   - Include important context that might be implied
+### Language and Tone requirements
+- Aim to make queries more specific while keeping them natural and searchable
+- Keep your language concise and formal
+- Always include relevant qualifiers to improve search precision
+- Maintain user's original intent
+- Include important context that might be implied
+- For trending topics, focus on recent developments and current state
+- For temporal queries (e.g., "latest", "recent", "new"), include specific time ranges when relevant
+- **DO NOT** infer the exact dates or times for a specific event or product when context is unclear
 
-Always aim to make queries more specific while keeping them natural and searchable.
+### Formatting Requirements
+- Only return the refined search query, **DO NOT** include any additional text or explanation
 
 Please refine this search query: "${searchTerm}"`;
 

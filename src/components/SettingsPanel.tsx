@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { useTheme } from '@/lib/theme-context';
+import { useSettings } from '@/lib/settings-context';
+import type { ApiProvider } from '@/lib/settings-context';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -11,7 +13,7 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
   const { theme, toggleTheme } = useTheme();
-  const [apiProvider, setApiProvider] = useState('openai');
+  const { apiProvider, setApiProvider } = useSettings();
 
   if (!isOpen) return null;
 
@@ -35,11 +37,12 @@ export function SettingsPanel({ isOpen, onClose }: SettingsPanelProps) {
             </label>
             <select
               value={apiProvider}
-              onChange={(e) => setApiProvider(e.target.value)}
+              onChange={(e) => setApiProvider(e.target.value as ApiProvider)}
               className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
-              <option value="openai">OpenAI</option>
+              <option value="alibabacloud">Alibaba Cloud</option>
               <option value="deepseek">DeepSeek</option>
+              <option value="openai">OpenAI</option>
             </select>
           </div>
 
