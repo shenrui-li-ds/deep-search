@@ -6,8 +6,9 @@ DeepSearch is a modern web search application that combines the power of multipl
 
 - **Smart Query Refinement**: Automatically improves search queries for better results
 - **Multi-Provider Support**: 
-  - OpenAI
+  - Alibaba Cloud
   - DeepSeek
+  - OpenAI
   - Tavily Search API
 - **Rich Search Results**:
   - Comprehensive summaries with citations
@@ -18,7 +19,6 @@ DeepSearch is a modern web search application that combines the power of multipl
   - Dark/Light mode support
   - Responsive design
   - Real-time search suggestions
-  - Citation hover previews
 
 ## 🚀 Getting Started
 
@@ -27,9 +27,10 @@ DeepSearch is a modern web search application that combines the power of multipl
 - Node.js 18+ and npm (for local development)
 - Docker and Docker Compose (for containerized deployment)
 - API keys for:
-  - OpenAI
+  - Alibaba Cloud
   - DeepSeek
-  - Tavily
+  - OpenAI
+  - Tavily Search API
 
 ### 🖥️ Local Installation
 
@@ -46,8 +47,9 @@ npm install
 
 3. Create a `.env.local` file in the root directory:
 ```env
-OPENAI_API_KEY=your_openai_api_key
+ALIBABACLOUD_API_KEY=your_alibabacloud_api_key
 DEEPSEEK_API_KEY=your_deepseek_api_key
+OPENAI_API_KEY=your_openai_api_key
 TAVILY_API_KEY=your_tavily_api_key
 ```
 
@@ -112,8 +114,9 @@ TODO
 
 Configure API providers in `.env.local`:
 ```env
-OPENAI_API_KEY=your_key
+ALIBABACLOUD_API_KEY=your_key
 DEEPSEEK_API_KEY=your_key
+OPENAI_API_KEY=your_key
 TAVILY_API_KEY=your_key
 ```
 
