@@ -19,7 +19,7 @@ DeepSearch is a modern web search application that combines the power of multipl
   - Dark/Light mode support
   - Responsive design
   - Real-time search suggestions
-  - Citation hover previews
+  - Parallelization for better performance
 
 ## 🚀 Getting Started
 
@@ -61,7 +61,7 @@ npm run dev
 
 Visit `http://localhost:3000` to start using DeepSearch.
 
-### 🐋 Docker Installation
+### 🐋 Docker Installation (TODO)
 
 1. Clone the repository and create `.env.local` as described above.
 
@@ -87,18 +87,18 @@ docker-compose down
 
 1. **Query Refinement**:
    - User enters a search query
-   - Selected AI provider (OpenAI/DeepSeek) refines the query for better results
+   - Selected AI provider (OpenAI/DeepSeek/Qwen) refines the query for better results
    - The refined query is used for the actual search
 
 2. **Search Process**:
    - Tavily API performs the web search
    - Results include titles, snippets, URLs, and images
-   - Related searches are generated based on results
 
 3. **Summarization**:
    - Selected AI provider analyzes search results
-   - Generates a comprehensive summary with citations
+   - Generates a comprehensive research report with citations
    - Formats output in markdown with proper source attribution
+   - Related searches are generated based on the report
 
 4. **Result Display**:
    - Summary with clickable citations
