@@ -84,16 +84,14 @@ export default function SearchPage() {
         throw new Error('Invalid response from refinement service');
       }
 
-      const refined_query = refineData.refined_query;
+      const refined_query = refineData.refined_query.trim();
       const refineExplanation = refineData.explanation;
 
       // Then perform the search with the refined query
       const searchResponse = await fetch('/api/tavily/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          query: refined_query.trim()
-        }),
+        body: JSON.stringify({ query: refined_query }),
       });
 
       const searchData = await searchResponse.json();
@@ -116,19 +114,32 @@ export default function SearchPage() {
         throw new Error('No search results found');
       }
 
-      // Then, summarize the results using the selected provider
-      const summarizeResponse = await fetch(`/api/${apiProvider}/summarize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          query: refined_query.trim(),
-          results: searchData.results,
-          refinedQuery: refined_query,
-          reasoning: refineExplanation
+      // Start both summarization and image scraping in parallel
+      const [summarizeResponse, imagesResponse] = await Promise.all([
+        fetch(`/api/${apiProvider}/summarize`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            query: refined_query,
+            results: searchData.results,
+            refinedQuery: refined_query,
+            reasoning: refineExplanation
+          }),
         }),
-      });
+        fetch('/api/scrape/images', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            urls: searchData.results.map((source: Source) => source.url)
+          }),
+        })
+      ]);
 
-      const summaryData = await summarizeResponse.json();
+      // Parse responses in parallel
+      const [summaryData, imagesData] = await Promise.all([
+        summarizeResponse.json(),
+        imagesResponse.ok ? imagesResponse.json() : { results: [] }
+      ]);
 
       if (!summarizeResponse.ok) {
         const errorMsg = summaryData.error || 'Failed to summarize results';
@@ -140,43 +151,29 @@ export default function SearchPage() {
         throw new Error(errorMsg);
       }
 
+      // Process source images if available
+      const sourcesWithImages = imagesResponse.ok 
+        ? searchData.results.map((source: Source) => {
+            const imageResult = imagesData.results.find((r: any) => r.url === source.url);
+            return {
+              ...source,
+              images: imageResult?.images || [],
+            };
+          })
+        : searchData.results;
+
       // Update state with all results at once
       setSearchState(prev => ({
         ...prev,
         refinedQuery: refined_query,
         reasoning: refineExplanation,
         answer: summaryData.answer,
-        sources: searchData.results,
+        sources: sourcesWithImages,
         relatedSearches: summaryData.relatedSearches || [],
         tavilyImages: searchData.images || [],
         isLoading: false,
       }));
 
-      // Fetch images for sources after main state update
-      const sourceUrls = searchData.results.map((source: Source) => source.url);
-      const imagesResponse = await fetch('/api/scrape/images', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls: sourceUrls }),
-      });
-
-      if (imagesResponse.ok) {
-        const imagesData = await imagesResponse.json();
-        const sourcesWithImages = searchData.results.map((source: Source) => {
-          const imageResult = imagesData.results.find((r: any) => r.url === source.url);
-          return {
-            ...source,
-            images: imageResult?.images || [],
-          };
-        });
-
-        setSearchState(prev => ({
-          ...prev,
-          sources: sourcesWithImages,
-        }));
-      } else {
-        console.error('Failed to fetch images:', await imagesResponse.text());
-      }
     } catch (error) {
       console.error('Search workflow error:', error);
       setSearchState(prev => ({

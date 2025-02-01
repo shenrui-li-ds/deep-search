@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server';
 import * as cheerio from 'cheerio';
 
-async function fetchWithTimeout(url: string, timeout = 5000) {
+const FETCH_TIMEOUT = 3000; // Reduce timeout to 3 seconds
+const MAX_URLS_PER_REQUEST = 5; // Limit number of URLs to scrape
+const MAX_IMAGES_PER_URL = 3; // Limit images per URL
+
+async function fetchWithTimeout(url: string, timeout = FETCH_TIMEOUT) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const response = await fetch(url, { signal: controller.signal });
+    const response = await fetch(url, { 
+      signal: controller.signal,
+      headers: {
+        'Accept': 'text/html',
+        'User-Agent': 'Mozilla/5.0 (compatible; DeepSearch/1.0;)'
+      }
+    });
     clearTimeout(id);
     return response;
   } catch (error) {
@@ -15,61 +25,60 @@ async function fetchWithTimeout(url: string, timeout = 5000) {
   }
 }
 
-async function scrapeImagesFromUrl(url: string) {
+async function scrapeImagesFromUrl(url: string): Promise<Array<{ src: string; alt: string }>> {
   try {
     const response = await fetchWithTimeout(url);
+    if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
+      return [];
+    }
+
     const html = await response.text();
     const $ = cheerio.load(html);
-    
-    const images: { src: string; alt: string }[] = [];
+    const images: { src: string; alt: string; score: number }[] = [];
     
     // Find relevant images (excluding tiny icons, ads, etc.)
-    $('article img, .content img, main img, img').each((_, element) => {
+    $('article img, .content img, main img, .post img, img').each((_, element) => {
       const img = $(element);
-      // Check multiple possible image source attributes
-      const src = img.attr('data-src') || img.attr('src') || img.attr('srcset') || '';
+      const src = img.attr('data-src') || img.attr('src') || img.attr('srcset')?.split(' ')[0] || '';
       const alt = img.attr('alt') || '';
       const caption = img.parent().text().trim();
       const width = parseInt(img.attr('width') || '0');
       const height = parseInt(img.attr('height') || '0');
       
-      // Skip if no source
       if (!src) return;
-      
-      // Skip tiny images (likely icons)
       if (width > 0 && width < 100) return;
       if (height > 0 && height < 100) return;
       
-      // Convert relative URLs to absolute
-      const absoluteSrc = new URL(src, url).href;
-      
-      // Skip SVG images
-      if (absoluteSrc.toLowerCase().endsWith('.svg')) return;
-      
-      // Skip common non-content images
-      if (absoluteSrc.toLowerCase().includes('logo') ||
-          absoluteSrc.toLowerCase().includes('avatar') ||
-          absoluteSrc.toLowerCase().includes('icon') ||
-          absoluteSrc.includes('ads.') || 
-          absoluteSrc.includes('tracking.') || 
-          absoluteSrc.includes('pixel.') ||
-          absoluteSrc.includes('analytics.')) {
+      try {
+        const absoluteSrc = new URL(src, url).href;
+        
+        if (absoluteSrc.toLowerCase().endsWith('.svg')) return;
+        if (absoluteSrc.toLowerCase().match(/(logo|avatar|icon|ads\.|tracking\.|pixel\.|analytics)/)) return;
+        
+        // Score the image based on various factors
+        let score = 0;
+        if (alt.length > 0) score += 2;
+        if (caption.length > 0) score += 1;
+        if (width > 300) score += 1;
+        if (height > 300) score += 1;
+        if (src.includes('hero') || src.includes('featured')) score += 2;
+        
+        images.push({ 
+          src: absoluteSrc,
+          alt: alt || caption,
+          score
+        });
+      } catch (e) {
+        // Skip invalid URLs
         return;
       }
-
-      // If the image has a caption or alt text, it's more likely to be content-relevant
-      const hasMetadata = alt.length > 0 || caption.length > 0;
-      
-      images.push({ 
-        src: absoluteSrc,
-        alt: alt || caption // Use caption as fallback for alt text
-      });
     });
     
-    // Return only the first few relevant images, prioritizing those with metadata
+    // Return top scored images
     return images
-      .sort((a, b) => (b.alt?.length || 0) - (a.alt?.length || 0))
-      .slice(0, 3);
+      .sort((a, b) => b.score - a.score)
+      .slice(0, MAX_IMAGES_PER_URL)
+      .map(({ src, alt }) => ({ src, alt }));
   } catch (error) {
     console.error(`Error scraping images from ${url}:`, error);
     return [];
@@ -87,9 +96,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Scrape images from all URLs in parallel
+    // Limit number of URLs to process
+    const urlsToProcess = urls.slice(0, MAX_URLS_PER_REQUEST);
+
+    // Scrape images from all URLs in parallel with timeout
     const results = await Promise.allSettled(
-      urls.map(async (url) => ({
+      urlsToProcess.map(async (url) => ({
         url,
         images: await scrapeImagesFromUrl(url)
       }))
