@@ -163,18 +163,21 @@ export function SearchResults({
             {tavilyImages && tavilyImages.length > 0 && (
               <div className="mt-6 mb-6 grid grid-cols-2 gap-4">
                 {tavilyImages.slice(0, 4).map((image, index) => (
-                  <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 group">
                     {image.url && (
-                      <img
-                        src={image.url}
-                        alt=""
-                        className="object-cover w-full h-full hover:opacity-90 transition-opacity"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          target.parentElement!.classList.add('hidden');
-                        }}
-                      />
+                      <a href={image.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
+                        <img
+                          src={image.url}
+                          alt=""
+                          className="object-cover w-full h-full group-hover:opacity-90 transition-opacity"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.parentElement!.parentElement!.classList.add('hidden');
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                      </a>
                     )}
                   </div>
                 ))}

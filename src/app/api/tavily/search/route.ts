@@ -14,34 +14,6 @@ console.log('========================');
 
 const TAVILY_API_URL = 'https://api.tavily.com/search';
 
-// Generate related searches based on the query and results
-function generateRelatedSearches(query: string, results: any[]) {
-  const keywords = new Set<string>();
-  
-  // Extract keywords from titles and snippets
-  results.forEach(result => {
-    const words = (result.title + ' ' + result.snippet)
-      .toLowerCase()
-      .split(/\s+/)
-      .filter(word => word.length > 4 && !query.toLowerCase().includes(word));
-    words.forEach(word => keywords.add(word));
-  });
-
-  // Generate variations of the original query
-  const suggestions = [
-    query + ' latest developments',
-    query + ' tutorial',
-    query + ' examples',
-    'how to ' + query,
-    'best ' + query + ' practices',
-    query + ' vs ' + Array.from(keywords)[0],
-    query + ' for beginners',
-    'advanced ' + query,
-  ].slice(0, 8); // Limit to 8 suggestions
-
-  return suggestions.map(query => ({ query }));
-}
-
 export async function POST(req: Request) {
   try {
     // Check if API key is configured
@@ -132,9 +104,6 @@ export async function POST(req: Request) {
       snippet: result.content || '',
     }));
 
-    // Generate related searches
-    const relatedSearches = generateRelatedSearches(query, formattedResults);
-
     // Extract images from Tavily response
     const images = data.images?.map((imageUrl: string) => ({
       url: imageUrl,
@@ -143,7 +112,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ 
       results: formattedResults,
-      relatedSearches,
       images
     });
   } catch (error) {
