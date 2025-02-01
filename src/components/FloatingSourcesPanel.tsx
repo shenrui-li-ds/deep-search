@@ -2,6 +2,7 @@
 
 import { Link as LinkIcon } from 'lucide-react';
 import { SourceIcon } from './SourceIcon';
+import Image from 'next/image';
 
 interface Source {
   title: string;
@@ -63,10 +64,13 @@ export function FloatingSourcesPanel({ sources, isOpen }: FloatingSourcesPanelPr
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       {source.images.map((image, imgIndex) => (
                         <div key={imgIndex} className="relative aspect-video">
-                          <img
+                          <Image
                             src={image.src}
                             alt={image.alt}
+                            width={320}
+                            height={180}
                             className="rounded-lg object-cover w-full h-full"
+                            unoptimized={true}
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';

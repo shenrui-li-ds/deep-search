@@ -6,6 +6,7 @@ import { FloatingSourcesPanel } from './FloatingSourcesPanel';
 import { SourcesPreview } from './SourcesPreview';
 import { SourceIcon } from './SourceIcon'; // Import SourceIcon
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface Source {
   title: string;
@@ -166,15 +167,13 @@ export function SearchResults({
                   <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 group">
                     {image.url && (
                       <a href={image.url} target="_blank" rel="noopener noreferrer" className="block w-full h-full">
-                        <img
+                        <Image
                           src={image.url}
                           alt=""
+                          width={640}
+                          height={360}
                           className="object-cover w-full h-full group-hover:opacity-90 transition-opacity"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.parentElement!.parentElement!.classList.add('hidden');
-                          }}
+                          unoptimized={true}
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                       </a>
