@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { SearchInput } from '@/components/SearchInput';
 import { SearchResults } from '@/components/SearchResults';
 import { Layout } from '@/components/Layout';
-import { useRouter } from 'next/navigation';
 
 interface SearchResult {
   url: string;
@@ -15,9 +14,8 @@ interface SearchResult {
 
 export default function Home() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = (query: string) => {
     router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
@@ -28,7 +26,7 @@ export default function Home() {
           DeepSearch
         </h1>
         <div className="w-full">
-          <SearchInput onSearch={handleSearch} isLoading={isLoading} showSuggestions />
+          <SearchInput onSearch={handleSearch} showSuggestions />
         </div>
         <div className="mt-12 space-y-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">

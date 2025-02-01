@@ -12,11 +12,17 @@ export function SearchInput({ onSearch, isLoading = false, showSuggestions = fal
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isShowingSuggestions, setIsShowingSuggestions] = useState(showSuggestions);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchInProgress = useRef(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim() && !isLoading) {
+    if (query.trim() && !isLoading && !searchInProgress.current) {
+      searchInProgress.current = true;
       onSearch(query.trim());
+      // Reset after a short delay to allow for navigation
+      setTimeout(() => {
+        searchInProgress.current = false;
+      }, 1000);
     }
   };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SearchInput } from '@/components/SearchInput';
 import { SearchResults } from '@/components/SearchResults';
@@ -24,11 +24,13 @@ interface SearchState {
   isLoading: boolean;
   error: string | null;
   relatedSearches: { query: string }[];
+  tavilyImages: { url: string; title: string }[];
 }
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
   const { apiProvider } = useSettings();
+  const searchInProgress = useRef<string | null>(null);
   const [searchState, setSearchState] = useState<SearchState>({
     query: '',
     refinedQuery: '',
@@ -38,9 +40,16 @@ export default function SearchPage() {
     isLoading: false,
     error: null,
     relatedSearches: [],
+    tavilyImages: [],
   });
 
   const handleSearch = async (query: string) => {
+    // Skip if this exact search is already in progress
+    if (searchInProgress.current === query) {
+      return;
+    }
+    searchInProgress.current = query;
+
     setSearchState(prev => ({ 
       ...prev, 
       query,
@@ -51,6 +60,7 @@ export default function SearchPage() {
       sources: [],
       reasoning: '',
       relatedSearches: [],
+      tavilyImages: [],
     }));
 
     try {
@@ -138,6 +148,7 @@ export default function SearchPage() {
         answer: summaryData.answer,
         sources: searchData.results,
         relatedSearches: summaryData.relatedSearches || [],
+        tavilyImages: searchData.images || [],
         isLoading: false,
       }));
 
@@ -173,12 +184,14 @@ export default function SearchPage() {
         error: error instanceof Error ? error.message : 'An unexpected error occurred',
         isLoading: false,
       }));
+    } finally {
+      searchInProgress.current = null;
     }
   };
 
   useEffect(() => {
     const query = searchParams.get('q');
-    if (query) {
+    if (query && !searchInProgress.current) {
       handleSearch(query);
     }
   }, [searchParams]);
@@ -204,6 +217,7 @@ export default function SearchPage() {
                 reasoning={searchState.reasoning}
                 isLoading={searchState.isLoading}
                 relatedSearches={searchState.relatedSearches}
+                tavilyImages={searchState.tavilyImages}
               />
             </div>
           )}

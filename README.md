@@ -19,6 +19,7 @@ DeepSearch is a modern web search application that combines the power of multipl
   - Dark/Light mode support
   - Responsive design
   - Real-time search suggestions
+  - Citation hover previews
 
 ## 🚀 Getting Started
 

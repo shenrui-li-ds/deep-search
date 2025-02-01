@@ -28,6 +28,7 @@ interface SearchResultsProps {
   isLoading?: boolean;
   relatedTopics?: string[];
   relatedSearches?: RelatedSearch[];
+  tavilyImages?: { url: string; title: string }[];
   error?: string;
 }
 
@@ -40,6 +41,7 @@ export function SearchResults({
   isLoading,
   relatedTopics = [],
   relatedSearches = [],
+  tavilyImages = [],
   error,
 }: SearchResultsProps) {
   const router = useRouter();
@@ -155,13 +157,29 @@ export function SearchResults({
         ) : (
           <div className="space-y-6">
             {/* Sources Preview */}
-            <div>
-              <SourcesPreview 
-                sources={sources} 
-                onExpand={() => setShowSourcesPanel(!showSourcesPanel)}
-                isExpanded={showSourcesPanel}
-              />
-            </div>
+            <SourcesPreview sources={sources} onExpand={() => setShowSourcesPanel(!showSourcesPanel)} isExpanded={showSourcesPanel} />
+
+            {/* Tavily Images */}
+            {tavilyImages && tavilyImages.length > 0 && (
+              <div className="mt-6 mb-6 grid grid-cols-2 gap-4">
+                {tavilyImages.slice(0, 4).map((image, index) => (
+                  <div key={index} className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    {image.url && (
+                      <img
+                        src={image.url}
+                        alt=""
+                        className="object-cover w-full h-full hover:opacity-90 transition-opacity"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.parentElement!.classList.add('hidden');
+                        }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Reasoning Process */}
             {reasoning && (

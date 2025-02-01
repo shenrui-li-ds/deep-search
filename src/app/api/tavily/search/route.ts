@@ -130,15 +130,21 @@ export async function POST(req: Request) {
       title: result.title || '',
       url: result.url || '',
       snippet: result.content || '',
-      images: result.image_urls?.map((url: string) => ({ src: url, alt: '' })) || []
     }));
 
     // Generate related searches
     const relatedSearches = generateRelatedSearches(query, formattedResults);
 
+    // Extract images from Tavily response
+    const images = data.images?.map((imageUrl: string) => ({
+      url: imageUrl,
+      title: ''  // We don't have titles in this format
+    })) || [];
+
     return NextResponse.json({ 
       results: formattedResults,
-      relatedSearches
+      relatedSearches,
+      images
     });
   } catch (error) {
     console.error('Search error:', error);
