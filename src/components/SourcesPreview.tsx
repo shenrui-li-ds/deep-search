@@ -28,7 +28,7 @@ export function SourcesPreview({ sources, onExpand, isExpanded }: SourcesPreview
   };
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6">
+    <div className="bg-gray-200 dark:bg-gray-900 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Sources</h3>
         <button

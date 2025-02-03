@@ -17,7 +17,7 @@ export function SourceIcon({ url, size = 16, className = '' }: SourceIconProps) 
         className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-sm ${className}`}
         style={{ width: size, height: size }}
       >
-        <Globe size={size * 0.75} className="text-gray-400" />
+        <Globe size={size * 0.75} className="text-gray-50" />
       </div>
     );
   }
@@ -45,7 +45,7 @@ export function SourceIcon({ url, size = 16, className = '' }: SourceIconProps) 
         className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-sm ${className}`}
         style={{ width: size, height: size }}
       >
-        <Globe size={size * 0.75} className="text-gray-400" />
+        <Globe size={size * 0.75} className="text-gray-50" />
       </div>
     );
   }

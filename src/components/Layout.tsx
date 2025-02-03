@@ -8,7 +8,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
         <Sidebar />
         <main className="pl-64">
           <div className="max-w-[2560px] mx-auto py-8 px-6">

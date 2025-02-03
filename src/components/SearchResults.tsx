@@ -112,7 +112,7 @@ export function SearchResults({
         {refinedQuery && refinedQuery !== query && reasoning && (
           <div>
             <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Query Refinement</h2>
-            <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
+            <div className="bg-gray-200 dark:bg-gray-800 rounded-lg p-4">
               <div className="flex flex-col gap-2">
                 <div>
                   <span className="font-medium text-gray-700 dark:text-gray-300">Original Query: </span>
@@ -187,7 +187,7 @@ export function SearchResults({
             {reasoning && (
               <div>
                 <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Reasoning Process</h2>
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="bg-gray-200 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
                   <button
                     onClick={() => setShowReasoning(!showReasoning)}
                     className="flex items-center justify-between w-full p-4 text-left"
@@ -212,8 +212,8 @@ export function SearchResults({
             {/* Answer */}
             <div>
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Answer</h2>
-              <div className="p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <div className="prose dark:prose-invert max-w-none space-y-6">
+              <div className="p-6 bg-gray-200 dark:bg-gray-900 rounded-lg">
+                <div className="prose dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white max-w-none space-y-6">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
@@ -322,7 +322,7 @@ export function SearchResults({
                 <div className="mt-6 flex gap-4">
                   <button
                     onClick={handleCopyAnswer}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full shadow-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full shadow-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none"
                   >
                     <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -331,7 +331,7 @@ export function SearchResults({
                   </button>
                   <button
                     onClick={handleDownloadAnswer}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full shadow-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none"
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-full shadow-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none"
                   >
                     <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
