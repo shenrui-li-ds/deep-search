@@ -15,7 +15,7 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
-    const { query, model = 'chatgpt-4o-latest' } = await req.json();
+    const { query, model = 'gpt-4o-mini' } = await req.json();
 
     if (!query) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
